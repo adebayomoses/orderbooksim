@@ -1,0 +1,38 @@
+Package: orderBookSim
+Type: Package
+Title: Agent-Based Limit Order Book Simulation for Market Microstructure
+Version: 0.1.0
+Authors@R:
+    person("Moses", "Adebayo", , "adebayomoses2021@gmail.com", role = c("aut", "cre", "cph"))
+Description: Simulates a continuous double-auction limit order book with
+    price-time priority matching, driven by configurable populations of
+    trading agents: zero-intelligence order flow in the spirit of Smith,
+    Farmer, Gillemot and Krishnamurthy (2003) <doi:10.1088/1469-7688/3/6/307>,
+    noise traders, inventory-constrained market makers, momentum traders and
+    informed traders who observe a latent fundamental value. Exogenous
+    liquidity shocks can be injected at chosen events. Tools measure
+    time-weighted bid-ask spreads, depth, price impact, resilience after
+    shocks and the stylised facts of returns, and an optional 'shiny'
+    application lets students explore how agent mixes shape liquidity.
+License: MIT + file LICENSE
+URL: https://github.com/adebayomoses/orderBookSim
+BugReports: https://github.com/adebayomoses/orderBookSim/issues
+Depends:
+    R (>= 4.1.0)
+Imports:
+    graphics,
+    grDevices,
+    stats,
+    utils,
+    withr
+Suggests:
+    knitr,
+    rmarkdown,
+    shiny,
+    testthat (>= 3.1.7)
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+Encoding: UTF-8
+Language: en-GB
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3

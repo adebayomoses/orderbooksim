@@ -1,0 +1,149 @@
+---
+title: "Getting started with orderBookSim"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting started with orderBookSim}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4)
+```
+
+```{r setup}
+library(orderBookSim)
+```
+
+`orderBookSim` simulates a continuous double auction: traders send limit and
+market orders to a limit order book (LOB), which matches them with
+price-time priority. You choose who trades, and the package measures what
+happens to liquidity.
+
+## 1. The order book by hand
+
+A book starts empty. Limit orders (with a price) rest in the book; market
+orders (without a price) trade against the best resting orders.
+
+```{r}
+book <- lob_new(tick_size = 0.01)
+lob_submit(book, "buy",  qty = 10, price = 99.98)
+lob_submit(book, "buy",  qty = 5,  price = 99.99)
+lob_submit(book, "sell", qty = 4,  price = 100.01)
+lob_submit(book, "sell", qty = 8,  price = 100.03)
+lob_quotes(book)
+```
+
+A market buy for 6 units takes all 4 at 100.01 and then 2 at 100.03, so the
+best ask moves up. That is liquidity being used up:
+
+```{r}
+lob_submit(book, "buy", qty = 6)
+lob_trades(book)
+lob_depth(book)
+```
+
+## 2. Simulating a market
+
+A simulation needs a population of agents. Each agent acts at random times
+with a given rate:
+
+| Agent | Behaviour |
+|---|---|
+| `agent_zi()` | Zero-intelligence limit, market and cancel orders (Smith et al. 2003) |
+| `agent_noise()` | Random market orders of random size |
+| `agent_market_maker()` | Quotes both sides around the mid and leans against its inventory |
+| `agent_momentum()` | Buys after rises, sells after falls |
+| `agent_informed()` | Trades towards a hidden fundamental value |
+
+```{r}
+agents <- list(
+  agent_zi(limit_rate = 2, market_rate = 0.4, cancel_rate = 0.05),
+  agent_market_maker(half_spread = 2),
+  agent_noise(rate = 0.2),
+  agent_informed(rate = 0.2)
+)
+sim <- simulate_lob(agents, n_events = 4000, seed = 1)
+sim
+summary(sim)
+```
+
+```{r}
+plot(sim)
+plot(sim, type = "spread")
+```
+
+Who made money? The market maker earns the spread but carries inventory
+risk; the informed trader profits from knowing the fundamental value.
+
+```{r}
+sim$agents[, c("name", "trades", "inventory", "pnl")]
+plot(sim, type = "fundamental")
+```
+
+## 3. Comparing market designs
+
+`compare_scenarios()` runs the same settings and seed for several agent mixes,
+so differences come from the agents rather than from luck.
+
+```{r}
+zi <- agent_zi(limit_rate = 0.8, market_rate = 0.4, cancel_rate = 0.05)
+compare_scenarios(
+  list(
+    zi_only    = list(zi),
+    one_mm     = list(zi, agent_market_maker(half_spread = 1)),
+    with_noise = list(zi, agent_market_maker(half_spread = 1), agent_noise(rate = 0.5))
+  ),
+  n_events = 3000, seed = 2
+)
+```
+
+## 4. Price impact
+
+Buys push prices up and sells push them down. `price_impact()` averages the
+signed mid-price move after each aggressive trade, at several lags or by
+trade size.
+
+```{r}
+imp <- price_impact(sim, lags = 0:60)
+plot(imp)
+plot(price_impact(sim, by = "size", bins = 5))
+```
+
+## 5. Liquidity shocks and resilience
+
+Inject a large market order and watch the book recover. The `shocks`
+argument takes the event at which each shock happens, its side and size.
+
+```{r}
+shocked <- simulate_lob(agents, n_events = 4000, seed = 1,
+                        shocks = data.frame(event = 2000, side = "sell", qty = 40))
+resilience(shocked, window = 200)
+plot(shocked, type = "spread")
+```
+
+## 6. Stylised facts
+
+Real returns have fat tails and volatility clustering. `stylized_facts()`
+checks whether the simulated market reproduces them.
+
+```{r}
+f <- stylized_facts(sim)
+f
+plot(f)
+```
+
+## 7. Interactive exploration
+
+`run_lob_app()` opens a 'shiny' app with sliders for every agent, a shock
+control, and the plots above, which works well in a classroom.
+
+```{r, eval = FALSE}
+run_lob_app()
+```
+
+## References
+
+Smith, E., Farmer, J. D., Gillemot, L. and Krishnamurthy, S. (2003).
+Statistical theory of the continuous double auction. *Quantitative Finance*,
+3(6), 481–514. <https://doi.org/10.1088/1469-7688/3/6/307>
