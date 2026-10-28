@@ -1,5 +1,10 @@
 # orderBookSim
 
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/adebayomoses/orderBookSim/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/adebayomoses/orderBookSim/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/adebayomoses/orderBookSim/graph/badge.svg)](https://app.codecov.io/gh/adebayomoses/orderBookSim)
+<!-- badges: end -->
+
 Agent-based limit order book simulation for teaching and researching market
 microstructure in R.
 

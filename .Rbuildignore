@@ -1,7 +1,13 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
-^README\.Rmd$
 ^LICENSE\.md$
-^cran-comments\.md$
-^\.github$
+^README\.Rmd$
 ^data-raw$
+^\.github$
+^CITATION\.cff$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^codecov\.yml$
+^cran-comments\.md$
+^CRAN-SUBMISSION$

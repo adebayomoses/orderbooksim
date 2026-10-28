@@ -1,0 +1,37 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "orderBookSim: Agent-Based Limit Order Book Simulation for Market Microstructure"
+version: 0.1.0
+license: MIT
+type: software
+authors:
+  - family-names: Adebayo
+    given-names: Moses
+    email: adebayomoses2021@gmail.com
+repository-code: "https://github.com/adebayomoses/orderBookSim"
+keywords:
+  - R
+  - market microstructure
+  - limit order book
+  - agent-based modelling
+  - high-frequency trading
+  - simulation
+references:
+  - type: article
+    title: "Statistical theory of the continuous double auction"
+    authors:
+      - family-names: Smith
+        given-names: Eric
+      - family-names: Farmer
+        given-names: J. Doyne
+      - family-names: Gillemot
+        given-names: László
+      - family-names: Krishnamurthy
+        given-names: Supriya
+    journal: "Quantitative Finance"
+    volume: 3
+    issue: 6
+    start: 481
+    end: 514
+    year: 2003
+    doi: 10.1088/1469-7688/3/6/307
