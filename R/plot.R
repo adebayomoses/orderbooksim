@@ -30,7 +30,7 @@ plot.lob_sim <- function(x, type = c("price", "spread", "depth", "inventory",
   switch(
     type,
     price = {
-      rng <- range(c(q$bid, q$ask, x$trades$price), na.rm = TRUE)
+      rng <- headroom(range(c(q$bid, q$ask, x$trades$price), na.rm = TRUE))
       graphics::plot(q$time, q$ask, type = "s", col = pal[["ask"]], ylim = rng,
                      xlab = "Time", ylab = "Price", main = "Best quotes and trades", ...)
       graphics::lines(q$time, q$bid, type = "s", col = pal[["bid"]])
@@ -39,13 +39,31 @@ plot.lob_sim <- function(x, type = c("price", "spread", "depth", "inventory",
                          col = grDevices::adjustcolor(pal[["trade"]], 0.5))
       }
       graphics::abline(v = shock_t, lty = 2, col = pal[["shock"]])
-      graphics::legend("topleft", c("ask", "bid", "trade"), bty = "n",
+      graphics::legend("topleft", c("ask", "bid", "trade"), bty = "n", horiz = TRUE,
                        col = c(pal[["ask"]], pal[["bid"]], pal[["trade"]]),
                        lty = c(1, 1, NA), pch = c(NA, NA, 16))
     },
     spread = {
-      graphics::plot(q$time, q$spread_ticks, type = "s", col = pal[["trade"]],
+      one <- is.na(q$spread_ticks)
+      rng <- range(q$spread_ticks, na.rm = TRUE)
+      if (!all(is.finite(rng))) rng <- c(0, 1)
+      if (any(one)) rng <- headroom(rng)
+      graphics::plot(q$time, q$spread_ticks, type = "s", col = pal[["trade"]], ylim = rng,
                      xlab = "Time", ylab = "Spread (ticks)", main = "Bid-ask spread", ...)
+      if (any(one)) {
+        # Shade spells when one side of the book is empty (no spread exists).
+        usr <- graphics::par("usr")
+        r <- rle(one)
+        ends <- cumsum(r$lengths)
+        starts <- ends - r$lengths + 1L
+        end_t <- c(q$time[-1], utils::tail(q$time, 1))
+        for (k in which(r$values)) {
+          graphics::rect(q$time[starts[k]], usr[3], end_t[ends[k]], usr[4], border = NA,
+                         col = grDevices::adjustcolor(pal[["shock"]], 0.25))
+        }
+        graphics::legend("topleft", "one-sided book", bty = "n", border = NA,
+                         fill = grDevices::adjustcolor(pal[["shock"]], 0.25))
+      }
       graphics::abline(v = shock_t, lty = 2, col = pal[["shock"]])
     },
     depth = plot.lob(x$book, ...),
@@ -55,7 +73,7 @@ plot.lob_sim <- function(x, type = c("price", "spread", "depth", "inventory",
         stop("The simulation has no informed traders.", call. = FALSE)
       }
       f <- x$fundamental
-      rng <- range(c(q$mid, f$value), na.rm = TRUE)
+      rng <- headroom(range(c(q$mid, f$value), na.rm = TRUE))
       graphics::plot(q$time, q$mid, type = "s", col = pal[["trade"]], ylim = rng,
                      xlab = "Time", ylab = "Price",
                      main = "Mid price and fundamental value", ...)
@@ -63,7 +81,7 @@ plot.lob_sim <- function(x, type = c("price", "spread", "depth", "inventory",
         g <- f[f$agent == a, ]
         graphics::lines(g$time, g$value, col = pal[["shock"]], type = "s")
       }
-      graphics::legend("topleft", c("mid", "fundamental"), bty = "n",
+      graphics::legend("topleft", c("mid", "fundamental"), bty = "n", horiz = TRUE,
                        col = c(pal[["trade"]], pal[["shock"]]), lty = 1)
     }
   )
@@ -77,6 +95,8 @@ plot.lob_sim <- function(x, type = c("price", "spread", "depth", "inventory",
 #'
 #' @param x A `lob`.
 #' @param levels Number of price levels per side.
+#' @param cex.names Size of the price labels; smaller values let every level
+#'   be labelled.
 #' @param ... Further arguments passed to [graphics::barplot()].
 #' @return `x`, invisibly.
 #' @examples
@@ -87,7 +107,7 @@ plot.lob_sim <- function(x, type = c("price", "spread", "depth", "inventory",
 #' }
 #' plot(book)
 #' @export
-plot.lob <- function(x, levels = 10, ...) {
+plot.lob <- function(x, levels = 10, cex.names = 0.75, ...) {
   d <- lob_depth(x, levels)
   if (!nrow(d)) {
     graphics::plot.new()
@@ -98,6 +118,7 @@ plot.lob <- function(x, levels = 10, ...) {
   cols <- ifelse(d$side == "bid", pal[["bid"]], pal[["ask"]])
   graphics::barplot(d$qty, names.arg = format(d$price, nsmall = 2), horiz = TRUE,
                     col = cols, border = NA, las = 1, xlab = "Quantity",
+                    cex.names = cex.names,
                     main = "Order book depth", ...)
   graphics::legend("bottomright", c("ask", "bid"), fill = c(pal[["ask"]], pal[["bid"]]),
                    border = NA, bty = "n")
@@ -155,4 +176,7 @@ plot_inventory <- function(x, ...) {
 }
 
 # Bid/ask/shock hues come from a palette validated for colour-vision deficiency.
+# Extra space above the data for a legend.
+headroom <- function(rng) c(rng[1], rng[2] + 0.15 * diff(rng))
+
 pal <- c(bid = "#2a78d6", ask = "#eb6834", trade = "#52514e", shock = "#6250d6")

@@ -4,12 +4,15 @@
 \alias{plot.lob}
 \title{Plot the depth of a limit order book}
 \usage{
-\method{plot}{lob}(x, levels = 10, ...)
+\method{plot}{lob}(x, levels = 10, cex.names = 0.75, ...)
 }
 \arguments{
 \item{x}{A \code{lob}.}
 
 \item{levels}{Number of price levels per side.}
+
+\item{cex.names}{Size of the price labels; smaller values let every level
+be labelled.}
 
 \item{...}{Further arguments passed to \code{\link[graphics:barplot]{graphics::barplot()}}.}
 }
