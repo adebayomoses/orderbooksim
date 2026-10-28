@@ -16,7 +16,7 @@ machine (qpdf, HTML Tidy, an online time check); these are not package issues.
 * Local: Windows 10, R 4.5.1 (`R CMD check --as-cran`, vignettes and PDF
   manual built)
 * GitHub Actions: Windows (release), macOS (release), Ubuntu (devel, release,
-  oldrel-1) [TODO: confirm all passed before submitting]
+  oldrel-1); all passed
 * win-builder: R-devel [TODO: confirm result from the e-mail before submitting]
 
 ## Notes for reviewers
